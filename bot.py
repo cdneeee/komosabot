@@ -9,7 +9,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-TARGET_USERNAME = "cdne" 
+TARGET_USERNAME = "happyroma" 
 
 @bot.event
 async def on_ready():
