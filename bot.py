@@ -9,7 +9,18 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-TARGET_USERNAME = "happyroma" 
+import discord
+import asyncio
+from discord.ext import commands
+import os
+
+intents = discord.Intents.default()
+intents.voice_states = True
+intents.members = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+TARGET_NICKNAMES = ["happyroma", "pegassi9404"]
 
 @bot.event
 async def on_ready():
@@ -18,11 +29,13 @@ async def on_ready():
 @bot.event
 async def on_voice_state_update(member, before, after):
     if after.channel is not None and after.self_mute:
-        if member.name.lower() == TARGET_USERNAME.lower():
-            print(f"⏳ {member.name} muted — waiting 15s...")
-            await asyncio.sleep(15)  # Delay
+        # Use nickname if available, otherwise username
+        name_to_check = member.nick.lower() if member.nick else member.name.lower()
 
-            # Re-fetch the latest voice state
+        if name_to_check in [n.lower() for n in TARGET_NICKNAMES]:
+            print(f"⏳ {name_to_check} muted — waiting 15s...")
+            await asyncio.sleep(15)
+
             updated_member = member.guild.get_member(member.id)
             if updated_member.voice and updated_member.voice.self_mute:
                 try:
