@@ -9,17 +9,6 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-import discord
-import asyncio
-from discord.ext import commands
-import os
-
-intents = discord.Intents.default()
-intents.voice_states = True
-intents.members = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
-
 TARGET_NICKNAMES = ["happyroma", "pegassi9404"]
 
 @bot.event
@@ -28,22 +17,36 @@ async def on_ready():
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    if after.channel is not None and after.self_mute:
-        # Use nickname if available, otherwise username
-        name_to_check = member.nick.lower() if member.nick else member.name.lower()
+    # 1. Prevent server mute/deafen for anyone
+    if not before.mute and after.mute:
+        try:
+            await member.edit(mute=False)
+            print(f"🔊 Auto-unmuted {member.name}")
+        except Exception as e:
+            print(f"❌ Failed to unmute {member.name}: {e}")
 
-        if name_to_check in [n.lower() for n in TARGET_NICKNAMES]:
-            print(f"⏳ {name_to_check} muted — waiting 15s...")
+    if not before.deaf and after.deaf:
+        try:
+            await member.edit(deafen=False)
+            print(f"🎧 Auto-undeafened {member.name}")
+        except Exception as e:
+            print(f"❌ Failed to undeafen {member.name}: {e}")
+
+    # 2. Kick target users if they self-deafen
+    name_to_check = member.nick.lower() if member.nick else member.name.lower()
+    if name_to_check in [n.lower() for n in TARGET_NICKNAMES]:
+        if after.channel and after.self_deaf:
+            print(f"⏳ {member.name} self-deafened — waiting 15s...")
             await asyncio.sleep(15)
 
-            updated_member = member.guild.get_member(member.id)
-            if updated_member.voice and updated_member.voice.self_mute:
+            updated = member.guild.get_member(member.id)
+            if updated.voice and updated.voice.self_deaf:
                 try:
-                    await updated_member.move_to(None)
-                    print(f"🔨 Kicked {updated_member.name} from VC for still being muted.")
+                    await updated.move_to(None)
+                    print(f"🔨 Kicked {updated.name} for still being self-deafened.")
                 except Exception as e:
-                    print(f"❌ Failed to kick {updated_member.name}: {e}")
+                    print(f"❌ Failed to kick {updated.name}: {e}")
             else:
-                print(f"✅ {member.name} unmuted before 15s passed — no action taken.")
-
+                print(f"✅ {member.name} undeafened before 15s — no action taken.")
+                
 bot.run(os.getenv("DISCORD_TOKEN"))
