@@ -9,7 +9,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-TARGET_NICKNAMES = ["happyroma", "pegassi9404","cdne"]
+TARGET_NICKNAMES = ["cdne", "pegassi9404","happyroma"]
 
 @bot.event
 async def on_ready():
