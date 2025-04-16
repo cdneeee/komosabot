@@ -9,15 +9,13 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-#TARGET_NICKNAMES = ["pegassi9404"]
-
 @bot.event
 async def on_ready():
     print(f"✅ Bot is ready — logged in as {bot.user}")
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    # 1. Prevent server mute/deafen for anyone
+    # 1. Auto-unmute/deafen if server did it
     if not before.mute and after.mute:
         try:
             await member.edit(mute=False)
@@ -32,9 +30,7 @@ async def on_voice_state_update(member, before, after):
         except Exception as e:
             print(f"❌ Failed to undeafen {member.name}: {e}")
 
-    @bot.event
-async def on_voice_state_update(member, before, after):
-    # Only act if user self-deafens and is in a channel
+    # 2. Kick anyone who self-deafens and stays that way
     if after.channel and after.self_deaf and not before.self_deaf:
         print(f"⏳ {member.name} self-deafened — waiting 15s...")
         await asyncio.sleep(15)
@@ -48,5 +44,5 @@ async def on_voice_state_update(member, before, after):
                 print(f"❌ Could not kick {updated.name}: {e}")
         else:
             print(f"✅ {member.name} undeafened — no action taken.")
-                
+
 bot.run(os.getenv("DISCORD_TOKEN"))
