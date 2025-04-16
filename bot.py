@@ -31,8 +31,8 @@ async def on_voice_state_update(member, before, after):
             print(f"❌ Failed to undeafen {member.name}: {e}")
 
     # 2. Kick anyone who self-deafens and stays that way
-    if after.channel and after.self_deaf and not before.self_deaf:
-        print(f"⏳ {member.name} self-deafened — waiting 15s...")
+    if after.channel and after.self_mute and not before.self_mute:
+        print(f"⏳ {member.name} self-muted — waiting 15s...")
         await asyncio.sleep(1200)
 
         updated = member.guild.get_member(member.id)
