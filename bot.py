@@ -9,7 +9,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-TARGET_NICKNAMES = ["cdne", "pegassi9404","happyroma", "HappyKomosa"]
+#TARGET_NICKNAMES = ["pegassi9404"]
 
 @bot.event
 async def on_ready():
@@ -32,21 +32,21 @@ async def on_voice_state_update(member, before, after):
         except Exception as e:
             print(f"❌ Failed to undeafen {member.name}: {e}")
 
-    # 2. Kick target users if they self-deafen
-    name_to_check = member.nick.lower() if member.nick else member.name.lower()
-    if name_to_check in [n.lower() for n in TARGET_NICKNAMES]:
-        if after.channel and after.self_deaf:
-            print(f"⏳ {member.name} self-deafened — waiting 15s...")
-            await asyncio.sleep(15)
+    @bot.event
+async def on_voice_state_update(member, before, after):
+    # Only act if user self-deafens and is in a channel
+    if after.channel and after.self_deaf and not before.self_deaf:
+        print(f"⏳ {member.name} self-deafened — waiting 15s...")
+        await asyncio.sleep(15)
 
-            updated = member.guild.get_member(member.id)
-            if updated.voice and updated.voice.self_deaf:
-                try:
-                    await updated.move_to(None)
-                    print(f"🔨 Kicked {updated.name} for still being self-deafened.")
-                except Exception as e:
-                    print(f"❌ Failed to kick {updated.name}: {e}")
-            else:
-                print(f"✅ {member.name} undeafened before 15s — no action taken.")
+        updated = member.guild.get_member(member.id)
+        if updated.voice and updated.voice.self_deaf:
+            try:
+                await updated.move_to(None)
+                print(f"🔨 Kicked {updated.name} from VC for staying self-deafened.")
+            except Exception as e:
+                print(f"❌ Could not kick {updated.name}: {e}")
+        else:
+            print(f"✅ {member.name} undeafened — no action taken.")
                 
 bot.run(os.getenv("DISCORD_TOKEN"))
